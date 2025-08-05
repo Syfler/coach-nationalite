@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach Nationalité Française</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        summary { list-style: none; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '▼'; float: right; transition: transform 0.2s; font-size: 0.8em; margin-top: 4px; }
+        details[open] summary::after { transform: rotate(180deg); }
+        .word-to-speak { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 6px; transition: background-color 0.2s; }
+        .word-to-speak:hover { background-color: #dbeafe; }
+        .translation-text { font-style: italic; color: #1e40af; }
+        /* Modal styles */
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+        }
+        .modal-container {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
+        
+        <header class="text-center border-b pb-4 mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-800">Coach Nationalité Française</h1>
+            <p class="text-gray-600 mt-2">Un outil complet pour préparer votre entretien</p>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+            <button id="btn-prononciation" class="main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300">Prononciation</button>
+            <button id="btn-entretien-essentiel" class="main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300">Entretien Essentiel</button>
+            <button id="btn-entretien-approfondi" class="main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300">Entretien Approfondi</button>
+        </nav>
+
+        <main>
+            <!-- Sections will be populated by JS -->
+            <section id="prononciation" class="main-section space-y-4"></section>
+            <section id="entretien-essentiel" class="main-section hidden"></section>
+            <section id="entretien-approfondi" class="main-section hidden"></section>
+        </main>
+
+        <footer class="text-center text-gray-500 text-sm mt-8 pt-4 border-t">
+            <p>Conçu avec soin pour vous aider. Bonne préparation !</p>
+            <button id="open-changelog-btn" class="text-blue-600 hover:underline mt-2">Historique des versions (v7.0)</button>
+        </footer>
+    </div>
+
+    <!-- Changelog Modal -->
+    <div id="changelog-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 opacity-0">
+        <div class="modal-container bg-white w-full max-w-2xl rounded-lg shadow-xl p-6 transform scale-95">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-2xl font-bold text-gray-800">Historique des versions</h3>
+                <button id="close-changelog-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+            </div>
+            <div class="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <!-- Version history will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- DATA ---
+            const questions_essentielles = [
+                { q: "Quelle est la devise de la France ?", a: "Liberté, Égalité, Fraternité.", vn_q: "Khẩu hiệu của Pháp là gì?", vn_a: "Tự do, Bình đẳng, Bác ái." },
+                { q: "Quelles sont les couleurs du drapeau français ?", a: "Bleu, Blanc, Rouge.", vn_q: "Màu sắc của quốc kỳ Pháp là gì?", vn_a: "Xanh, Trắng, Đỏ." },
+                { q: "Quel est l'hymne national de la France ?", a: "La Marseillaise.", vn_q: "Quốc ca của Pháp là gì?", vn_a: "La Marseillaise." },
+                { q: "Quand célèbre-t-on la fête nationale et pourquoi ?", a: "Le 14 juillet, en commémoration de la prise de la Bastille en 1789.", vn_q: "Quốc khánh được tổ chức khi nào và tại sao?", vn_a: "Ngày 14 tháng 7, để kỷ niệm việc chiếm ngục Bastille năm 1789." },
+                { q: "Qu'est-ce que la laïcité ?", a: "La séparation de l'État et des religions. L'État est neutre et garantit la liberté de culte.", vn_q: "Chủ nghĩa thế tục (laïcité) là gì?", vn_a: "Là sự tách biệt giữa Nhà nước và các tôn giáo. Nhà nước trung lập và đảm bảo tự do tín ngưỡng." },
+                { q: "Qui est le chef de l'État en France ?", a: "Le Président de la République.", vn_q: "Nguyên thủ quốc gia ở Pháp là ai?", vn_a: "Tổng thống Cộng hòa." },
+                { q: "Pour combien de temps le Président est-il élu ?", a: "Pour un mandat de 5 ans, renouvelable une fois.", vn_q: "Tổng thống được bầu trong bao lâu?", vn_a: "Nhiệm kỳ 5 năm, có thể tái cử một lần." },
+                { q: "Citez trois grands fleuves français.", a: "La Seine, la Loire, le Rhône, la Garonne.", vn_q: "Kể tên ba con sông lớn của Pháp.", vn_a: "Sông Seine, sông Loire, sông Rhône, sông Garonne." },
+                { q: "Citez trois pays frontaliers avec la France.", a: "Espagne, Italie, Suisse, Allemagne, Luxembourg, Belgique.", vn_q: "Kể tên ba quốc gia có biên giới với Pháp.", vn_a: "Tây Ban Nha, Ý, Thụy Sĩ, Đức, Luxembourg, Bỉ." },
+                { q: "Qui vote les lois en France ?", a: "Le Parlement (Assemblée Nationale et Sénat).", vn_q: "Ai bỏ phiếu thông qua luật ở Pháp?", vn_a: "Quốc hội (Hạ viện và Thượng viện)." },
+                { q: "Citez un droit et un devoir d'un citoyen français.", a: "Droit : voter. Devoir : payer ses impôts.", vn_q: "Nêu một quyền và một nghĩa vụ của công dân Pháp.", vn_a: "Quyền: đi bầu cử. Nghĩa vụ: đóng thuế." },
+                { q: "Que symbolise Marianne ?", a: "Une allégorie de la République et de ses valeurs.", vn_q: "Marianne tượng trưng cho điều gì?", vn_a: "Một biểu tượng của nền Cộng hòa và các giá trị của nó." },
+                { q: "Que s'est-il passé en 1789 ?", a: "La Révolution française.", vn_q: "Điều gì đã xảy ra vào năm 1789?", vn_a: "Cuộc Cách mạng Pháp." },
+                { q: "Qui était Charles de Gaulle ?", a: "Chef de la France Libre et premier président de la Vème République.", vn_q: "Charles de Gaulle là ai?", vn_a: "Lãnh đạo của Nước Pháp Tự do và tổng thống đầu tiên của nền Cộng hòa thứ năm." },
+                { q: "Citez deux écrivains français célèbres.", a: "Victor Hugo, Molière, Albert Camus, Voltaire.", vn_q: "Kể tên hai nhà văn Pháp nổi tiếng.", vn_a: "Victor Hugo, Molière, Albert Camus, Voltaire." },
+                { q: "Qu'est-ce que l'Union Européenne ?", a: "Une union politique et économique de pays européens.", vn_q: "Liên minh châu Âu là gì?", vn_a: "Một liên minh chính trị và kinh tế của các nước châu Âu." },
+                { q: "Quels sont les trois pouvoirs de l'État ?", a: "Législatif, exécutif, et judiciaire.", vn_q: "Ba quyền lực của nhà nước là gì?", vn_a: "Lập pháp, hành pháp và tư pháp." },
+                { q: "Quand les femmes ont-elles obtenu le droit de vote en France ?", a: "En 1944.", vn_q: "Phụ nữ ở Pháp có quyền bầu cử từ khi nào?", vn_a: "Năm 1944." }
+            ];
+            const questions_approfondies = [
+                // Organisation de la République
+                { q: "Qu'est-ce que la Vème République ?", a: "C'est le régime politique actuel de la France, fondé par Charles de Gaulle en 1958. Sa constitution donne un rôle important au Président.", vn_q: "Nền Cộng hòa thứ năm là gì?", vn_a: "Là chế độ chính trị hiện tại của Pháp, do Charles de Gaulle thành lập năm 1958. Hiến pháp của nó trao một vai trò quan trọng cho Tổng thống." },
+                { q: "Qui est le Premier ministre et quel est son rôle ?", a: "Nommé par le Président, il est le chef du gouvernement. Il dirige l'action du gouvernement et assure l'exécution des lois.", vn_q: "Thủ tướng là ai và vai trò của ông là gì?", vn_a: "Do Tổng thống bổ nhiệm, ông là người đứng đầu chính phủ. Ông chỉ đạo hoạt động của chính phủ và đảm bảo việc thi hành luật pháp." },
+                { q: "Comment une loi est-elle votée ?", a: "Un projet de loi est proposé par le gouvernement ou le Parlement. Il doit être voté dans les mêmes termes par l'Assemblée Nationale et le Sénat.", vn_q: "Một đạo luật được biểu quyết như thế nào?", vn_a: "Một dự luật được chính phủ hoặc Quốc hội đề xuất. Nó phải được Hạ viện và Thượng viện biểu quyết thông qua với nội dung giống hệt nhau." },
+                { q: "Qu'est-ce qu'un référendum ?", a: "C'est un vote par lequel tous les citoyens sont appelés à répondre par 'oui' ou par 'non' à une question posée par le pouvoir exécutif.", vn_q: "Trưng cầu dân ý là gì?", vn_a: "Là một cuộc bỏ phiếu mà tất cả các công dân được kêu gọi trả lời 'có' hoặc 'không' cho một câu hỏi do cơ quan hành pháp đặt ra." },
+                { q: "Quel est le rôle d'un maire ?", a: "Il est le représentant de l'État dans sa commune. Il est officier d'état civil (mariages) et de police judiciaire, et gère le budget de la commune.", vn_q: "Vai trò của một thị trưởng là gì?", vn_a: "Ông là đại diện của Nhà nước tại xã của mình. Ông là viên chức hộ tịch (hôn nhân) và cảnh sát tư pháp, và quản lý ngân sách của xã." },
+                
+                // Histoire
+                { q: "Qui était Louis XIV ?", a: "Un roi de France très important, surnommé le 'Roi-Soleil'. Il a fait construire le château de Versailles et a symbolisé la monarchie absolue.", vn_q: "Louis XIV là ai?", vn_a: "Một vị vua rất quan trọng của Pháp, có biệt danh là 'Vua Mặt trời'. Ông đã cho xây dựng cung điện Versailles và tượng trưng cho chế độ quân chủ chuyên chế." },
+                { q: "Qui était Napoléon Bonaparte ?", a: "Un général devenu Empereur. Il a profondément réformé la France en créant le Code Civil, les lycées et la Banque de France.", vn_q: "Napoléon Bonaparte là ai?", vn_a: "Một vị tướng trở thành Hoàng đế. Ông đã cải cách sâu sắc nước Pháp bằng cách tạo ra Bộ luật Dân sự, các trường trung học và Ngân hàng Pháp." },
+                { q: "Qui était Jeanne d'Arc ?", a: "Une héroïne de l'histoire de France qui a mené les troupes françaises contre les Anglais pendant la Guerre de Cent Ans au 15ème siècle.", vn_q: "Jeanne d'Arc là ai?", vn_a: "Một nữ anh hùng trong lịch sử Pháp, người đã lãnh đạo quân đội Pháp chống lại người Anh trong Chiến tranh Trăm năm vào thế kỷ 15." },
+                { q: "Citez deux dates importantes des Guerres Mondiales.", a: "11 novembre 1918 (Armistice de la Première Guerre mondiale) et 8 mai 1945 (Victoire des Alliés en Europe pour la Seconde Guerre mondiale).", vn_q: "Nêu hai ngày quan trọng của các cuộc Thế chiến.", vn_a: "Ngày 11 tháng 11 năm 1918 (Hiệp định đình chiến Thế chiến thứ nhất) và ngày 8 tháng 5 năm 1945 (Ngày Chiến thắng ở châu Âu trong Thế chiến thứ hai)." },
+                { q: "Qui était Jean Moulin ?", a: "Un héros qui a unifié la Résistance française pendant la Seconde Guerre mondiale sous l'autorité du général de Gaulle.", vn_q: "Jean Moulin là ai?", vn_a: "Một anh hùng đã thống nhất phong trào Kháng chiến Pháp trong Thế chiến thứ hai dưới quyền của tướng de Gaulle." },
+
+                // Géographie et Culture
+                { q: "Citez deux massifs montagneux en France.", a: "Les Alpes (où se trouve le Mont Blanc) et les Pyrénées (à la frontière avec l'Espagne).", vn_q: "Kể tên hai dãy núi ở Pháp.", vn_a: "Dãy Alps (nơi có đỉnh Mont Blanc) và dãy Pyrenees (ở biên giới với Tây Ban Nha)." },
+                { q: "Citez deux départements ou régions d'outre-mer (DROM).", a: "La Guadeloupe, la Martinique, la Guyane, La Réunion, Mayotte.", vn_q: "Kể tên hai tỉnh hoặc vùng hải ngoại (DROM).", vn_a: "Guadeloupe, Martinique, Guyane, La Réunion, Mayotte." },
+                { q: "Citez un peintre et un musicien français célèbres.", a: "Peintre : Claude Monet (impressionnisme). Musicien : Claude Debussy (compositeur), Édith Piaf (chanteuse).", vn_q: "Kể tên một họa sĩ và một nhạc sĩ Pháp nổi tiếng.", vn_a: "Họa sĩ: Claude Monet (trường phái Ấn tượng). Nhạc sĩ: Claude Debussy (nhà soạn nhạc), Édith Piaf (ca sĩ)." },
+                { q: "Citez deux plats typiques de la gastronomie française.", a: "Le bœuf bourguignon, la blanquette de veau, le coq au vin, la ratatouille, les crêpes.", vn_q: "Kể tên hai món ăn đặc trưng của ẩm thực Pháp.", vn_a: "Bò bourguignon, bê hầm blanquette, gà sốt vang, ratatouille, bánh crêpe." },
+                { q: "Citez un monument célèbre en France en dehors de Paris.", a: "Le Mont-Saint-Michel en Normandie, le Pont du Gard près de Nîmes, les châteaux de la Loire (comme Chambord).", vn_q: "Kể tên một di tích nổi tiếng ở Pháp ngoài Paris.", vn_a: "Tu viện Mont-Saint-Michel ở Normandy, cầu Pont du Gard gần Nîmes, các lâu đài ở thung lũng Loire (như Chambord)." },
+                { q: "Quel animal est un des symboles de la France ?", a: "Le coq gaulois.", vn_q: "Con vật nào là một trong những biểu tượng của Pháp?", vn_a: "Gà trống Gaulois." },
+
+                // Valeurs, Droits et Devoirs
+                { q: "Qu'est-ce que la fraternité, dans la devise française ?", a: "C'est un lien de solidarité qui doit unir tous les citoyens. Cela se traduit par des actions comme l'aide aux plus démunis ou le bénévolat.", vn_q: "Bác ái, trong khẩu hiệu của Pháp, là gì?", vn_a: "Đó là một mối liên kết đoàn kết phải hợp nhất tất cả các công dân. Điều này được thể hiện qua các hành động như giúp đỡ người nghèo khó hoặc hoạt động tình nguyện." },
+                { q: "L'école est-elle obligatoire en France ?", a: "Oui, l'instruction est obligatoire pour tous les enfants de 3 à 16 ans. L'école publique est gratuite et laïque.", vn_q: "Việc học ở Pháp có bắt buộc không?", vn_a: "Có, giáo dục là bắt buộc đối với tất cả trẻ em từ 3 đến 16 tuổi. Trường công lập miễn phí và thế tục." },
+                { q: "Qu'est-ce que la sécurité sociale ?", a: "Un système de protection sociale qui vise à protéger les individus contre les risques sociaux (maladie, maternité, vieillesse, chômage).", vn_q: "Bảo hiểm xã hội (sécurité sociale) là gì?", vn_a: "Một hệ thống bảo trợ xã hội nhằm bảo vệ cá nhân khỏi các rủi ro xã hội (bệnh tật, thai sản, tuổi già, thất nghiệp)." },
+                { q: "Qu'est-ce que la liberté d'expression ?", a: "C'est le droit d'exprimer ses opinions, dans les limites fixées par la loi (ne pas inciter à la haine, à la violence, ou diffamer).", vn_q: "Tự do ngôn luận là gì?", vn_a: "Là quyền bày tỏ ý kiến của mình, trong giới hạn do pháp luật quy định (không kích động hận thù, bạo lực, hoặc phỉ báng)." },
+                { q: "Pourquoi voulez-vous devenir français(e) ?", a: "Question personnelle. Il faut montrer son attachement à la France, à ses valeurs, à sa culture et sa volonté de participer à la vie de la nation.", vn_q: "Tại sao bạn muốn trở thành người Pháp?", vn_a: "Câu hỏi cá nhân. Cần thể hiện sự gắn bó của bạn với nước Pháp, với các giá trị, văn hóa của nó và mong muốn tham gia vào đời sống quốc gia." }
+            ];
+
+            // --- ICONS ---
+            const speakerIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.383-.217zM14.5 8.5a.5.5 0 01.5.5v2a.5.5 0 01-1 0v-2a.5.5 0 01.5-.5zM16.5 7a.5.5 0 01.5.5v4a.5.5 0 01-1 0v-4a.5.5 0 01.5-.5z"/></svg>`;
+            const translateIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 hover:text-blue-700" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7 2a1 1 0 011 1v1h3a1 1 0 110 2H9.578a18.87 18.87 0 01-1.152 2.443C8.794 8.861 9.223 9.54 9.5 10a1 1 0 11-2 0c-.277-.46-.706-1.139-1.057-1.557A18.87 18.87 0 015.422 6H3a1 1 0 110-2h3V3a1 1 0 011-1zm6 6a1 1 0 01.894.553l2.992 5.984a1 1 0 11-1.788.894L13.5 13.236H10.5l-1.6 3.202a1 1 0 11-1.788-.894l2.992-5.984A1 1 0 0111 8h2zm-1.5 3.236a.5.5 0 00-.447-.236h-1.106a.5.5 0 00-.447.236L11.5 12.472l1.5 3.004 1.5-3.004-1-2z" clip-rule="evenodd" /></svg>`;
+
+            // --- UTILITY FUNCTIONS ---
+            function speak(text) { if ('speechSynthesis' in window) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'fr-FR'; u.rate = 0.9; window.speechSynthesis.speak(u); } }
+            function createTranslationButton(translation) {
+                const btn = document.createElement('button');
+                btn.className = "ml-2 shrink-0";
+                btn.innerHTML = translateIconSVG;
+                const translationSpan = document.createElement('span');
+                translationSpan.className = "translation-text hidden ml-2";
+                translationSpan.textContent = `(${translation})`;
+                btn.addEventListener('click', (e) => { e.stopPropagation(); translationSpan.classList.toggle('hidden'); });
+                return [btn, translationSpan];
+            }
+
+            // --- UI SETUP FUNCTIONS ---
+            function setupPronunciation() {
+                const container = document.getElementById('prononciation');
+                container.innerHTML = `<h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Les sons difficiles du français</h2>`;
+                const pronunciationData = [
+                    { title: 'Le son "u" [y]', examples: ['Rue', 'Tu', 'Une', 'Jus'], instructions: 'Dites "iiii". Sans bouger la langue, arrondissez les lèvres.' },
+                    { title: 'Le "r" guttural [ʁ]', examples: ['Bonjour', 'Merci', 'Très', 'France'], instructions: 'Imaginez que vous vous gargarisez doucement.' },
+                    { title: 'Les voyelles nasales', examples: ['Maman', 'Bonbon', 'Pain'], instructions: 'Prononcez la voyelle en laissant l\'air passer par le nez.' },
+                    { title: 'Les sons "eu" / "œu"', examples: ['Deux', 'Heure', 'Cœur'], instructions: '"eu" fermé (Deux): Dites "é" et arrondissez les lèvres. "eu" ouvert (Heure): Dites "è" et arrondissez les lèvres.' }
+                ];
+                pronunciationData.forEach(item => {
+                    const details = document.createElement('details');
+                    details.className = 'bg-blue-50 border border-blue-200 rounded-lg';
+                    const summary = document.createElement('summary');
+                    summary.className = 'p-4 font-semibold cursor-pointer text-blue-900';
+                    summary.textContent = item.title;
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'p-4 border-t border-blue-200 bg-white rounded-b-lg';
+                    const examplesP = document.createElement('p');
+                    examplesP.innerHTML = '<strong>Exemples : </strong>';
+                    item.examples.forEach(word => {
+                        const span = document.createElement('span');
+                        span.className = 'word-to-speak';
+                        span.innerHTML = `${word} ${speakerIconSVG}`;
+                        span.addEventListener('click', (e) => { e.stopPropagation(); speak(word); });
+                        examplesP.appendChild(span);
+                        examplesP.append(' ');
+                    });
+                    const instructionsP = document.createElement('p');
+                    instructionsP.className = 'mt-2';
+                    instructionsP.innerHTML = `<strong>Mode d'emploi :</strong> ${item.instructions}`;
+                    contentDiv.appendChild(examplesP);
+                    contentDiv.appendChild(instructionsP);
+                    details.appendChild(summary);
+                    details.appendChild(contentDiv);
+                    container.appendChild(details);
+                });
+            }
+
+            function setupInterviewUI(sectionId, title, hasQuiz) {
+                const container = document.getElementById(sectionId);
+                const quizOrSimulator = hasQuiz ? 'Quiz' : 'Simulateur';
+                container.innerHTML = `
+                    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">${title}</h2>
+                    <div class="flex justify-center border border-gray-200 rounded-full p-1 bg-gray-100 max-w-sm mx-auto mb-6">
+                        <button id="btn-simulator-mode-${sectionId}" class="interview-mode-btn w-1/2 p-2 rounded-full text-sm font-semibold">${quizOrSimulator}</button>
+                        <button id="btn-list-mode-${sectionId}" class="interview-mode-btn w-1/2 p-2 rounded-full text-sm font-semibold">Liste Complète</button>
+                    </div>
+                    <!-- Simulator -->
+                    <div id="simulator-mode-${sectionId}">
+                        <div id="quiz-start-${sectionId}" class="text-center">
+                             <p class="mb-4">Testez vos connaissances avec des questions aléatoires.</p>
+                             <button id="btn-start-quiz-${sectionId}" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full">Commencer le ${quizOrSimulator}</button>
+                        </div>
+                        <div id="quiz-area-${sectionId}" class="hidden">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-lg font-bold text-gray-700">Question <span id="question-count-${sectionId}"></span></h3>
+                                ${hasQuiz ? `<span id="score-display-${sectionId}" class="font-mono text-lg px-3 py-1 bg-blue-100 text-blue-800 rounded-md">Score: 0/0</span>` : ''}
+                            </div>
+                            <div class="question-box bg-gray-100 border border-gray-200 rounded-lg p-6 min-h-[120px] flex items-center justify-center text-center">
+                                <p id="question-text-${sectionId}" class="text-lg md:text-xl text-gray-800"></p>
+                            </div>
+                            <div id="show-answer-btn-container-${sectionId}" class="text-center mt-6">
+                                <button class="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-6 rounded-full">Afficher la réponse</button>
+                            </div>
+                            <div id="answer-box-${sectionId}" class="hidden mt-4 bg-green-50 border border-green-200 rounded-lg p-4"></div>
+                            <div id="self-eval-buttons-${sectionId}" class="hidden mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <button class="eval-btn w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full" data-correct="true">J'ai raison</button>
+                                <button class="eval-btn w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full" data-correct="false">Je me suis trompé(e)</button>
+                            </div>
+                             <div id="next-question-btn-container-${sectionId}" class="text-center mt-4 hidden">
+                                <button class="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-full">Question Suivante</button>
+                            </div>
+                        </div>
+                        <div id="quiz-end-${sectionId}" class="hidden text-center p-6 bg-blue-100 rounded-lg">
+                            <h3 id="quiz-end-title-${sectionId}" class="text-2xl font-bold text-blue-800">Quiz Terminé !</h3>
+                            <p id="quiz-end-subtitle-${sectionId}" class="text-xl mt-2">Votre score final est de</p>
+                            <p id="final-score-${sectionId}" class="text-5xl font-bold my-4 text-blue-900"></p>
+                            <button id="btn-restart-quiz-${sectionId}" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full">Recommencer</button>
+                        </div>
+                    </div>
+                    <!-- Full List -->
+                    <div id="list-mode-${sectionId}" class="hidden space-y-3"></div>
+                `;
+            }
+
+            function setupInterviewLogic(sectionId, questions, hasQuiz) {
+                const simulatorModeBtn = document.getElementById(`btn-simulator-mode-${sectionId}`);
+                const listModeBtn = document.getElementById(`btn-list-mode-${sectionId}`);
+                const simulatorDiv = document.getElementById(`simulator-mode-${sectionId}`);
+                const listDiv = document.getElementById(`list-mode-${sectionId}`);
+                
+                const activeClasses = 'bg-white text-blue-700 shadow';
+                const inactiveClasses = 'bg-transparent text-gray-600';
+                function switchMode(activeBtn, inactiveBtn, activeDiv, inactiveDiv) {
+                    activeDiv.classList.remove('hidden');
+                    inactiveDiv.classList.add('hidden');
+                    activeBtn.className = `interview-mode-btn w-1/2 p-2 rounded-full text-sm font-semibold ${activeClasses}`;
+                    inactiveBtn.className = `interview-mode-btn w-1/2 p-2 rounded-full text-sm font-semibold ${inactiveClasses}`;
+                }
+                simulatorModeBtn.addEventListener('click', () => switchMode(simulatorModeBtn, listModeBtn, simulatorDiv, listDiv));
+                listModeBtn.addEventListener('click', () => switchMode(listModeBtn, simulatorModeBtn, listDiv, simulatorDiv));
+                switchMode(simulatorModeBtn, listModeBtn, simulatorDiv, listDiv);
+
+                listDiv.innerHTML = '';
+                questions.forEach(item => {
+                    const details = document.createElement('details');
+                    details.className = 'bg-gray-50 border border-gray-200 rounded-lg';
+                    const summary = document.createElement('summary');
+                    summary.className = 'p-4 font-semibold cursor-pointer text-gray-800 flex justify-between items-center';
+                    const qText = document.createElement('span');
+                    qText.textContent = item.q;
+                    const [transBtnQ, transSpanQ] = createTranslationButton(item.vn_q);
+                    summary.appendChild(qText);
+                    summary.appendChild(transBtnQ);
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'p-4 border-t border-gray-200 bg-white rounded-b-lg text-gray-700 flex items-center';
+                    const aText = document.createElement('span');
+                    aText.textContent = item.a;
+                    const [transBtnA, transSpanA] = createTranslationButton(item.vn_a);
+                    contentDiv.appendChild(aText);
+                    contentDiv.appendChild(transBtnA);
+                    
+                    details.appendChild(summary);
+                    details.appendChild(transSpanQ);
+                    details.appendChild(contentDiv);
+                    details.appendChild(transSpanA);
+                    listDiv.appendChild(details);
+                });
+
+                const startDiv = document.getElementById(`quiz-start-${sectionId}`);
+                const quizArea = document.getElementById(`quiz-area-${sectionId}`);
+                const endDiv = document.getElementById(`quiz-end-${sectionId}`);
+                const startBtn = document.getElementById(`btn-start-quiz-${sectionId}`);
+                const restartBtn = document.getElementById(`btn-restart-quiz-${sectionId}`);
+                const questionCountEl = document.getElementById(`question-count-${sectionId}`);
+                const questionTextEl = document.getElementById(`question-text-${sectionId}`);
+                const showAnswerBtnContainer = document.getElementById(`show-answer-btn-container-${sectionId}`);
+                const answerBoxEl = document.getElementById(`answer-box-${sectionId}`);
+                const selfEvalBtnsContainer = document.getElementById(`self-eval-buttons-${sectionId}`);
+                const nextQuestionBtnContainer = document.getElementById(`next-question-btn-container-${sectionId}`);
+                
+                let scoreDisplayEl, finalScoreEl, quizEndTitle, quizEndSubtitle;
+                if (hasQuiz) {
+                    scoreDisplayEl = document.getElementById(`score-display-${sectionId}`);
+                    finalScoreEl = document.getElementById(`final-score-${sectionId}`);
+                    quizEndTitle = document.getElementById(`quiz-end-title-${sectionId}`);
+                    quizEndSubtitle = document.getElementById(`quiz-end-subtitle-${sectionId}`);
+                }
+
+                let currentQuestionIndex, score, questionOrder;
+                
+                function startQuiz() {
+                    currentQuestionIndex = 0;
+                    score = 0;
+                    questionOrder = [...questions.keys()].sort(() => Math.random() - 0.5);
+                    startDiv.classList.add('hidden');
+                    endDiv.classList.add('hidden');
+                    quizArea.classList.remove('hidden');
+                    if(hasQuiz) scoreDisplayEl.textContent = `Score: 0/0`;
+                    displayQuestion();
+                }
+
+                function displayQuestion() {
+                    const q = questions[questionOrder[currentQuestionIndex]];
+                    questionTextEl.innerHTML = '';
+                    const qText = document.createElement('span');
+                    qText.textContent = q.q;
+                    const [transBtn, transSpan] = createTranslationButton(q.vn_q);
+                    questionTextEl.appendChild(qText);
+                    questionTextEl.appendChild(transBtn);
+                    questionTextEl.appendChild(transSpan);
+
+                    questionCountEl.textContent = `${currentQuestionIndex + 1}/${questions.length}`;
+                    answerBoxEl.classList.add('hidden');
+                    selfEvalBtnsContainer.classList.add('hidden');
+                    nextQuestionBtnContainer.classList.add('hidden');
+                    showAnswerBtnContainer.classList.remove('hidden');
+                }
+
+                showAnswerBtnContainer.querySelector('button').addEventListener('click', () => {
+                    showAnswerBtnContainer.classList.add('hidden');
+                    const q = questions[questionOrder[currentQuestionIndex]];
+                    answerBoxEl.innerHTML = '';
+                    const aText = document.createElement('span');
+                    aText.innerHTML = `<strong>Réponse :</strong> ${q.a}`;
+                    const [transBtn, transSpan] = createTranslationButton(q.vn_a);
+                    answerBoxEl.appendChild(aText);
+                    answerBoxEl.appendChild(transBtn);
+                    answerBoxEl.appendChild(transSpan);
+                    answerBoxEl.classList.remove('hidden');
+
+                    if (hasQuiz) {
+                        selfEvalBtnsContainer.classList.remove('hidden');
+                    } else {
+                        nextQuestionBtnContainer.classList.remove('hidden');
+                    }
+                });
+
+                selfEvalBtnsContainer.querySelectorAll('.eval-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        if (btn.dataset.correct === 'true') score++;
+                        selfEvalBtnsContainer.classList.add('hidden');
+                        if(hasQuiz) scoreDisplayEl.textContent = `Score: ${score}/${currentQuestionIndex + 1}`;
+                        moveToNextQuestion();
+                    });
+                });
+                
+                nextQuestionBtnContainer.querySelector('button').addEventListener('click', moveToNextQuestion);
+
+                function moveToNextQuestion() {
+                     currentQuestionIndex++;
+                    if (currentQuestionIndex < questions.length) {
+                        displayQuestion();
+                    } else {
+                        endQuiz();
+                    }
+                }
+
+                function endQuiz() {
+                    quizArea.classList.add('hidden');
+                    endDiv.classList.remove('hidden');
+                    if(hasQuiz) {
+                        quizEndTitle.textContent = "Quiz Terminé !";
+                        quizEndSubtitle.classList.remove('hidden');
+                        const percentage = Math.round((score / questions.length) * 100);
+                        finalScoreEl.textContent = `${percentage}%`;
+                    } else {
+                        quizEndTitle.textContent = "Bravo !";
+                        quizEndSubtitle.textContent = "Vous avez terminé la série de questions.";
+                        finalScoreEl.textContent = '👍';
+                    }
+                }
+                
+                startBtn.addEventListener('click', startQuiz);
+                restartBtn.addEventListener('click', startQuiz);
+            }
+
+            // --- MAIN INITIALIZATION ---
+            const mainTabs = document.querySelectorAll('.main-tab-btn');
+            const mainSections = document.querySelectorAll('.main-section');
+            const mainActiveClasses = 'bg-blue-700 text-white shadow-inner';
+            const mainInactiveClasses = 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+            mainTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    mainTabs.forEach(t => t.className = `main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300 ${mainInactiveClasses}`);
+                    tab.className = `main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300 ${mainActiveClasses}`;
+                    mainSections.forEach(s => s.classList.add('hidden'));
+                    document.getElementById(tab.id.replace('btn-', '')).classList.remove('hidden');
+                });
+            });
+
+            setupPronunciation();
+            setupInterviewUI('entretien-essentiel', 'Entraînement Essentiel (Quiz)', true);
+            setupInterviewLogic('entretien-essentiel', questions_essentielles, true);
+            setupInterviewUI('entretien-approfondi', 'Entraînement Approfondi', false);
+            setupInterviewLogic('entretien-approfondi', questions_approfondies, false);
+
+            document.getElementById('btn-prononciation').click();
+            
+            // --- CHANGELOG MODAL LOGIC ---
+            const changelogModal = document.getElementById('changelog-modal');
+            const openChangelogBtn = document.getElementById('open-changelog-btn');
+            const closeChangelogBtn = document.getElementById('close-changelog-btn');
+            const changelogContent = changelogModal.querySelector('.space-y-4');
+
+            const versions = [
+                { version: "v7.0", date: "05/08/2025", changes: ["Ajout de nombreuses questions dans la section 'Entretien Approfondi' pour une préparation complète."] },
+                { version: "v6.0", date: "05/08/2025", changes: ["Amélioration de la logique du Quiz pour afficher la réponse avant l'évaluation.", "Ajout de l'historique des versions."] },
+                { version: "v5.0", date: "05/08/2025", changes: ["Transformation du simulateur 'Essentiel' en Quiz avec score.", "Ajout de boutons de traduction en vietnamien."] },
+                { version: "v4.0", date: "05/08/2025", changes: ["Ajout de la section 'Entretien Approfondi' avec plus de questions."] },
+                { version: "v3.0", date: "05/08/2025", changes: ["Ajout du mode 'Liste Complète' pour réviser toutes les questions."] },
+                { version: "v2.0", date: "05/08/2025", changes: ["Ajout de la synthèse vocale pour écouter la prononciation des mots."] },
+                { version: "v1.0", date: "05/08/2025", changes: ["Création de l'application avec les sections Prononciation et Entretien."] }
+            ];
+
+            changelogContent.innerHTML = versions.map(v => `
+                <div>
+                    <h4 class="text-lg font-bold text-gray-700">${v.version} <span class="text-sm font-normal text-gray-500">- ${v.date}</span></h4>
+                    <ul class="list-disc list-inside text-gray-600 mt-1">
+                        ${v.changes.map(c => `<li>${c}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+
+            function toggleModal(show) {
+                const overlay = document.getElementById('changelog-modal');
+                if (!overlay) return;
+                const container = overlay.querySelector('.modal-container');
+                if (!container) return;
+
+                if (show) {
+                    overlay.classList.remove('hidden');
+                    setTimeout(() => {
+                        overlay.classList.remove('opacity-0');
+                        container.classList.remove('scale-95');
+                    }, 10);
+                } else {
+                    overlay.classList.add('opacity-0');
+                    container.classList.add('scale-95');
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                    }, 300);
+                }
+            }
+
+            openChangelogBtn.addEventListener('click', () => toggleModal(true));
+            closeChangelogBtn.addEventListener('click', () => toggleModal(false));
+            changelogModal.addEventListener('click', (e) => {
+                if (e.target === changelogModal) {
+                    toggleModal(false);
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
