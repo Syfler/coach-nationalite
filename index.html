@@ -17,13 +17,6 @@
         .word-to-speak { cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 6px; transition: background-color 0.2s; }
         .word-to-speak:hover { background-color: #dbeafe; }
         .translation-text { font-style: italic; color: #1e40af; }
-        /* Modal styles */
-        .modal-overlay {
-            transition: opacity 0.3s ease;
-        }
-        .modal-container {
-            transition: transform 0.3s ease;
-        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -39,6 +32,7 @@
             <button id="btn-prononciation" class="main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300">Prononciation</button>
             <button id="btn-entretien-essentiel" class="main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300">Entretien Essentiel</button>
             <button id="btn-entretien-approfondi" class="main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300">Entretien Approfondi</button>
+            <button id="btn-entrainement-expert" class="main-tab-btn px-4 py-2 text-sm md:text-base font-semibold rounded-full focus:outline-none transition-all duration-300">Entraînement Expert</button>
         </nav>
 
         <main>
@@ -46,27 +40,13 @@
             <section id="prononciation" class="main-section space-y-4"></section>
             <section id="entretien-essentiel" class="main-section hidden"></section>
             <section id="entretien-approfondi" class="main-section hidden"></section>
+            <section id="entrainement-expert" class="main-section hidden"></section>
         </main>
 
         <footer class="text-center text-gray-500 text-sm mt-8 pt-4 border-t">
-            <p>Conçu avec soin pour vous aider. Bonne préparation !</p>
-            <button id="open-changelog-btn" class="text-blue-600 hover:underline mt-2">Historique des versions (v7.0)</button>
+            <p>© 2025 <a href="https://github.com/Syfler" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Syfler</a> - Conçu avec soin. Tous droits réservés.</p>
         </footer>
     </div>
-
-    <!-- Changelog Modal -->
-    <div id="changelog-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50 opacity-0">
-        <div class="modal-container bg-white w-full max-w-2xl rounded-lg shadow-xl p-6 transform scale-95">
-            <div class="flex justify-between items-center border-b pb-3">
-                <h3 class="text-2xl font-bold text-gray-800">Historique des versions</h3>
-                <button id="close-changelog-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
-            </div>
-            <div class="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                <!-- Version history will be populated by JS -->
-            </div>
-        </div>
-    </div>
-
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -93,34 +73,48 @@
                 { q: "Quand les femmes ont-elles obtenu le droit de vote en France ?", a: "En 1944.", vn_q: "Phụ nữ ở Pháp có quyền bầu cử từ khi nào?", vn_a: "Năm 1944." }
             ];
             const questions_approfondies = [
-                // Organisation de la République
-                { q: "Qu'est-ce que la Vème République ?", a: "C'est le régime politique actuel de la France, fondé par Charles de Gaulle en 1958. Sa constitution donne un rôle important au Président.", vn_q: "Nền Cộng hòa thứ năm là gì?", vn_a: "Là chế độ chính trị hiện tại của Pháp, do Charles de Gaulle thành lập năm 1958. Hiến pháp của nó trao một vai trò quan trọng cho Tổng thống." },
-                { q: "Qui est le Premier ministre et quel est son rôle ?", a: "Nommé par le Président, il est le chef du gouvernement. Il dirige l'action du gouvernement et assure l'exécution des lois.", vn_q: "Thủ tướng là ai và vai trò của ông là gì?", vn_a: "Do Tổng thống bổ nhiệm, ông là người đứng đầu chính phủ. Ông chỉ đạo hoạt động của chính phủ và đảm bảo việc thi hành luật pháp." },
-                { q: "Comment une loi est-elle votée ?", a: "Un projet de loi est proposé par le gouvernement ou le Parlement. Il doit être voté dans les mêmes termes par l'Assemblée Nationale et le Sénat.", vn_q: "Một đạo luật được biểu quyết như thế nào?", vn_a: "Một dự luật được chính phủ hoặc Quốc hội đề xuất. Nó phải được Hạ viện và Thượng viện biểu quyết thông qua với nội dung giống hệt nhau." },
-                { q: "Qu'est-ce qu'un référendum ?", a: "C'est un vote par lequel tous les citoyens sont appelés à répondre par 'oui' ou par 'non' à une question posée par le pouvoir exécutif.", vn_q: "Trưng cầu dân ý là gì?", vn_a: "Là một cuộc bỏ phiếu mà tất cả các công dân được kêu gọi trả lời 'có' hoặc 'không' cho một câu hỏi do cơ quan hành pháp đặt ra." },
-                { q: "Quel est le rôle d'un maire ?", a: "Il est le représentant de l'État dans sa commune. Il est officier d'état civil (mariages) et de police judiciaire, et gère le budget de la commune.", vn_q: "Vai trò của một thị trưởng là gì?", vn_a: "Ông là đại diện của Nhà nước tại xã của mình. Ông là viên chức hộ tịch (hôn nhân) và cảnh sát tư pháp, và quản lý ngân sách của xã." },
-                
-                // Histoire
-                { q: "Qui était Louis XIV ?", a: "Un roi de France très important, surnommé le 'Roi-Soleil'. Il a fait construire le château de Versailles et a symbolisé la monarchie absolue.", vn_q: "Louis XIV là ai?", vn_a: "Một vị vua rất quan trọng của Pháp, có biệt danh là 'Vua Mặt trời'. Ông đã cho xây dựng cung điện Versailles và tượng trưng cho chế độ quân chủ chuyên chế." },
-                { q: "Qui était Napoléon Bonaparte ?", a: "Un général devenu Empereur. Il a profondément réformé la France en créant le Code Civil, les lycées et la Banque de France.", vn_q: "Napoléon Bonaparte là ai?", vn_a: "Một vị tướng trở thành Hoàng đế. Ông đã cải cách sâu sắc nước Pháp bằng cách tạo ra Bộ luật Dân sự, các trường trung học và Ngân hàng Pháp." },
-                { q: "Qui était Jeanne d'Arc ?", a: "Une héroïne de l'histoire de France qui a mené les troupes françaises contre les Anglais pendant la Guerre de Cent Ans au 15ème siècle.", vn_q: "Jeanne d'Arc là ai?", vn_a: "Một nữ anh hùng trong lịch sử Pháp, người đã lãnh đạo quân đội Pháp chống lại người Anh trong Chiến tranh Trăm năm vào thế kỷ 15." },
-                { q: "Citez deux dates importantes des Guerres Mondiales.", a: "11 novembre 1918 (Armistice de la Première Guerre mondiale) et 8 mai 1945 (Victoire des Alliés en Europe pour la Seconde Guerre mondiale).", vn_q: "Nêu hai ngày quan trọng của các cuộc Thế chiến.", vn_a: "Ngày 11 tháng 11 năm 1918 (Hiệp định đình chiến Thế chiến thứ nhất) và ngày 8 tháng 5 năm 1945 (Ngày Chiến thắng ở châu Âu trong Thế chiến thứ hai)." },
-                { q: "Qui était Jean Moulin ?", a: "Un héros qui a unifié la Résistance française pendant la Seconde Guerre mondiale sous l'autorité du général de Gaulle.", vn_q: "Jean Moulin là ai?", vn_a: "Một anh hùng đã thống nhất phong trào Kháng chiến Pháp trong Thế chiến thứ hai dưới quyền của tướng de Gaulle." },
-
-                // Géographie et Culture
-                { q: "Citez deux massifs montagneux en France.", a: "Les Alpes (où se trouve le Mont Blanc) et les Pyrénées (à la frontière avec l'Espagne).", vn_q: "Kể tên hai dãy núi ở Pháp.", vn_a: "Dãy Alps (nơi có đỉnh Mont Blanc) và dãy Pyrenees (ở biên giới với Tây Ban Nha)." },
-                { q: "Citez deux départements ou régions d'outre-mer (DROM).", a: "La Guadeloupe, la Martinique, la Guyane, La Réunion, Mayotte.", vn_q: "Kể tên hai tỉnh hoặc vùng hải ngoại (DROM).", vn_a: "Guadeloupe, Martinique, Guyane, La Réunion, Mayotte." },
-                { q: "Citez un peintre et un musicien français célèbres.", a: "Peintre : Claude Monet (impressionnisme). Musicien : Claude Debussy (compositeur), Édith Piaf (chanteuse).", vn_q: "Kể tên một họa sĩ và một nhạc sĩ Pháp nổi tiếng.", vn_a: "Họa sĩ: Claude Monet (trường phái Ấn tượng). Nhạc sĩ: Claude Debussy (nhà soạn nhạc), Édith Piaf (ca sĩ)." },
-                { q: "Citez deux plats typiques de la gastronomie française.", a: "Le bœuf bourguignon, la blanquette de veau, le coq au vin, la ratatouille, les crêpes.", vn_q: "Kể tên hai món ăn đặc trưng của ẩm thực Pháp.", vn_a: "Bò bourguignon, bê hầm blanquette, gà sốt vang, ratatouille, bánh crêpe." },
-                { q: "Citez un monument célèbre en France en dehors de Paris.", a: "Le Mont-Saint-Michel en Normandie, le Pont du Gard près de Nîmes, les châteaux de la Loire (comme Chambord).", vn_q: "Kể tên một di tích nổi tiếng ở Pháp ngoài Paris.", vn_a: "Tu viện Mont-Saint-Michel ở Normandy, cầu Pont du Gard gần Nîmes, các lâu đài ở thung lũng Loire (như Chambord)." },
-                { q: "Quel animal est un des symboles de la France ?", a: "Le coq gaulois.", vn_q: "Con vật nào là một trong những biểu tượng của Pháp?", vn_a: "Gà trống Gaulois." },
-
-                // Valeurs, Droits et Devoirs
-                { q: "Qu'est-ce que la fraternité, dans la devise française ?", a: "C'est un lien de solidarité qui doit unir tous les citoyens. Cela se traduit par des actions comme l'aide aux plus démunis ou le bénévolat.", vn_q: "Bác ái, trong khẩu hiệu của Pháp, là gì?", vn_a: "Đó là một mối liên kết đoàn kết phải hợp nhất tất cả các công dân. Điều này được thể hiện qua các hành động như giúp đỡ người nghèo khó hoặc hoạt động tình nguyện." },
-                { q: "L'école est-elle obligatoire en France ?", a: "Oui, l'instruction est obligatoire pour tous les enfants de 3 à 16 ans. L'école publique est gratuite et laïque.", vn_q: "Việc học ở Pháp có bắt buộc không?", vn_a: "Có, giáo dục là bắt buộc đối với tất cả trẻ em từ 3 đến 16 tuổi. Trường công lập miễn phí và thế tục." },
-                { q: "Qu'est-ce que la sécurité sociale ?", a: "Un système de protection sociale qui vise à protéger les individus contre les risques sociaux (maladie, maternité, vieillesse, chômage).", vn_q: "Bảo hiểm xã hội (sécurité sociale) là gì?", vn_a: "Một hệ thống bảo trợ xã hội nhằm bảo vệ cá nhân khỏi các rủi ro xã hội (bệnh tật, thai sản, tuổi già, thất nghiệp)." },
-                { q: "Qu'est-ce que la liberté d'expression ?", a: "C'est le droit d'exprimer ses opinions, dans les limites fixées par la loi (ne pas inciter à la haine, à la violence, ou diffamer).", vn_q: "Tự do ngôn luận là gì?", vn_a: "Là quyền bày tỏ ý kiến của mình, trong giới hạn do pháp luật quy định (không kích động hận thù, bạo lực, hoặc phỉ báng)." },
-                { q: "Pourquoi voulez-vous devenir français(e) ?", a: "Question personnelle. Il faut montrer son attachement à la France, à ses valeurs, à sa culture et sa volonté de participer à la vie de la nation.", vn_q: "Tại sao bạn muốn trở thành người Pháp?", vn_a: "Câu hỏi cá nhân. Cần thể hiện sự gắn bó của bạn với nước Pháp, với các giá trị, văn hóa của nó và mong muốn tham gia vào đời sống quốc gia." }
+                { q: "Qu'est-ce que la Vème République ?", a: "C'est le régime politique actuel de la France, fondé par Charles de Gaulle en 1958.", vn_q: "Nền Cộng hòa thứ năm là gì?", vn_a: "Là chế độ chính trị hiện tại của Pháp, do Charles de Gaulle thành lập năm 1958." },
+                { q: "Qui est le Premier ministre et quel est son rôle ?", a: "Nommé par le Président, il est le chef du gouvernement. Il dirige l'action du gouvernement.", vn_q: "Thủ tướng là ai và vai trò của ông là gì?", vn_a: "Do Tổng thống bổ nhiệm, ông là người đứng đầu chính phủ. Ông chỉ đạo hoạt động của chính phủ." },
+                { q: "Comment une loi est-elle votée ?", a: "Un projet est proposé, puis voté par l'Assemblée Nationale et le Sénat.", vn_q: "Một đạo luật được biểu quyết như thế nào?", vn_a: "Một dự luật được đề xuất, sau đó được Hạ viện và Thượng viện biểu quyết thông qua." },
+                { q: "Quel est le rôle d'un maire ?", a: "Il représente l'État dans sa commune, gère le budget et est officier d'état civil.", vn_q: "Vai trò của một thị trưởng là gì?", vn_a: "Ông đại diện cho Nhà nước tại xã của mình, quản lý ngân sách và là viên chức hộ tịch." },
+                { q: "Qui était Louis XIV ?", a: "Un roi de France surnommé le 'Roi-Soleil', il a fait construire le château de Versailles.", vn_q: "Louis XIV là ai?", vn_a: "Một vị vua của Pháp có biệt danh là 'Vua Mặt trời', ông đã cho xây dựng cung điện Versailles." },
+                { q: "Qui était Napoléon Bonaparte ?", a: "Un général devenu Empereur, il a créé le Code Civil.", vn_q: "Napoléon Bonaparte là ai?", vn_a: "Một vị tướng trở thành Hoàng đế, ông đã tạo ra Bộ luật Dân sự." },
+                { q: "Qui était Jeanne d'Arc ?", a: "Une héroïne de la Guerre de Cent Ans qui a mené les troupes françaises contre les Anglais.", vn_q: "Jeanne d'Arc là ai?", vn_a: "Một nữ anh hùng trong Chiến tranh Trăm năm, người đã lãnh đạo quân đội Pháp chống lại người Anh." },
+                { q: "Citez deux dates importantes des Guerres Mondiales.", a: "11 novembre 1918 (Armistice 1ère GM) et 8 mai 1945 (Victoire 2ème GM).", vn_q: "Nêu hai ngày quan trọng của các cuộc Thế chiến.", vn_a: "Ngày 11 tháng 11 năm 1918 (Hiệp định đình chiến) và ngày 8 tháng 5 năm 1945 (Ngày Chiến thắng)." },
+                { q: "Qui était Jean Moulin ?", a: "Un héros qui a unifié la Résistance française pendant la Seconde Guerre mondiale.", vn_q: "Jean Moulin là ai?", vn_a: "Một anh hùng đã thống nhất phong trào Kháng chiến Pháp trong Thế chiến thứ hai." },
+                { q: "Citez deux massifs montagneux en France.", a: "Les Alpes et les Pyrénées.", vn_q: "Kể tên hai dãy núi ở Pháp.", vn_a: "Dãy Alps và dãy Pyrenees." },
+                { q: "Citez deux départements ou régions d'outre-mer (DROM).", a: "La Guadeloupe, la Martinique, La Réunion.", vn_q: "Kể tên hai tỉnh hoặc vùng hải ngoại (DROM).", vn_a: "Guadeloupe, Martinique, La Réunion." },
+                { q: "Citez un peintre et un musicien français célèbres.", a: "Peintre : Claude Monet. Musicien : Claude Debussy, Édith Piaf.", vn_q: "Kể tên một họa sĩ và một nhạc sĩ Pháp nổi tiếng.", vn_a: "Họa sĩ: Claude Monet. Nhạc sĩ: Claude Debussy, Édith Piaf." },
+                { q: "Citez deux plats typiques français.", a: "Le bœuf bourguignon, la blanquette de veau, les crêpes.", vn_q: "Kể tên hai món ăn đặc trưng của Pháp.", vn_a: "Bò bourguignon, bê hầm blanquette, bánh crêpe." },
+                { q: "Citez un monument célèbre en France en dehors de Paris.", a: "Le Mont-Saint-Michel, le Pont du Gard, les châteaux de la Loire.", vn_q: "Kể tên một di tích nổi tiếng ở Pháp ngoài Paris.", vn_a: "Tu viện Mont-Saint-Michel, cầu Pont du Gard, các lâu đài ở thung lũng Loire." },
+                { q: "L'école est-elle obligatoire en France ?", a: "Oui, l'instruction est obligatoire de 3 à 16 ans.", vn_q: "Việc học ở Pháp có bắt buộc không?", vn_a: "Có, giáo dục là bắt buộc từ 3 đến 16 tuổi." },
+                { q: "Qu'est-ce que la sécurité sociale ?", a: "Un système qui protège contre les risques comme la maladie, la maternité ou la vieillesse.", vn_q: "Bảo hiểm xã hội (sécurité sociale) là gì?", vn_a: "Một hệ thống bảo vệ khỏi các rủi ro như bệnh tật, thai sản hoặc tuổi già." },
+                { q: "Pourquoi voulez-vous devenir français(e) ?", a: "Question personnelle. Montrez votre attachement à la France et à ses valeurs.", vn_q: "Tại sao bạn muốn trở thành người Pháp?", vn_a: "Câu hỏi cá nhân. Hãy thể hiện sự gắn bó của bạn với nước Pháp và các giá trị của nó." }
+            ];
+            const questions_expert = [
+                { q: "Quelle est la différence entre une république et une monarchie ?", a: "République : le chef de l'État est élu. Monarchie : il hérite du pouvoir.", vn_q: "Sự khác biệt giữa cộng hòa và quân chủ là gì?", vn_a: "Cộng hòa: nguyên thủ quốc gia được bầu. Quân chủ: ông ta thừa kế quyền lực." },
+                { q: "Qu'est-ce qu'une constitution ?", a: "La loi fondamentale d'un pays qui organise les institutions et garantit les libertés.", vn_q: "Hiến pháp là gì?", vn_a: "Đó là luật cơ bản của một quốc gia, tổ chức các thể chế và đảm bảo các quyền tự do." },
+                { q: "Quel est le rôle du Conseil Constitutionnel ?", a: "Il vérifie que les lois sont conformes à la Constitution.", vn_q: "Vai trò của Hội đồng Hiến pháp là gì?", vn_a: "Nó kiểm tra xem các luật có phù hợp với Hiến pháp hay không." },
+                { q: "Qui a écrit La Marseillaise ?", a: "Rouget de Lisle en 1792.", vn_q: "Ai đã viết bài La Marseillaise?", vn_a: "Rouget de Lisle vào năm 1792." },
+                { q: "Qui repose au Panthéon ?", a: "Des personnalités qui ont marqué l'histoire de France : Victor Hugo, Marie Curie, Jean Moulin...", vn_q: "Ai được an nghỉ tại Panthéon?", vn_a: "Những nhân vật đã ghi dấu ấn trong lịch sử Pháp: Victor Hugo, Marie Curie, Jean Moulin..." },
+                { q: "Qui était le chef des Gaulois qui a résisté aux Romains ?", a: "Vercingétorix.", vn_q: "Thủ lĩnh của người Gaulois đã chống lại người La Mã là ai?", vn_a: "Vercingétorix." },
+                { q: "Qui était Charlemagne ?", a: "Roi des Francs puis empereur, il a unifié une grande partie de l'Europe occidentale vers l'an 800.", vn_q: "Charlemagne là ai?", vn_a: "Vua của người Frank sau đó là hoàng đế, ông đã thống nhất một phần lớn Tây Âu vào khoảng năm 800." },
+                { q: "Qui sont les philosophes des Lumières ?", a: "Des penseurs du 18e siècle comme Montesquieu, Voltaire, Rousseau, qui ont promu la raison.", vn_q: "Các nhà triết học Khai sáng là ai?", vn_a: "Là những nhà tư tưởng của thế kỷ 18 như Montesquieu, Voltaire, Rousseau, những người đã đề cao lý trí." },
+                { q: "Qu'est-ce que l'Édit de Nantes ?", a: "Un édit de tolérance signé par Henri IV en 1598 pour mettre fin aux guerres de religion.", vn_q: "Sắc lệnh Nantes là gì?", vn_a: "Một sắc lệnh khoan dung do vua Henri IV ký năm 1598 để chấm dứt các cuộc chiến tranh tôn giáo." },
+                { q: "Citez une réforme du Front Populaire en 1936.", a: "L'instauration des premiers congés payés (2 semaines) et la semaine de 40 heures.", vn_q: "Nêu một cuộc cải cách của Mặt trận Bình dân năm 1936.", vn_a: "Việc thiết lập các kỳ nghỉ có lương đầu tiên (2 tuần) và tuần làm việc 40 giờ." },
+                { q: "Qu'est-ce que l'appel du 18 juin 1940 ?", a: "L'appel du général de Gaulle depuis Londres pour refuser l'armistice et continuer le combat.", vn_q: "Lời kêu gọi ngày 18 tháng 6 năm 1940 là gì?", vn_a: "Lời kêu gọi của tướng de Gaulle từ London để từ chối hiệp định đình chiến và tiếp tục cuộc chiến." },
+                { q: "Citez deux symboles de l'Union Européenne.", a: "Le drapeau européen (12 étoiles), l'hymne (l'Ode à la joie) et la monnaie (l'euro).", vn_q: "Kể tên hai biểu tượng của Liên minh châu Âu.", vn_a: "Lá cờ châu Âu (12 ngôi sao), quốc ca (Ode to Joy) và tiền tệ (euro)." },
+                { q: "Citez une personnalité scientifique française et sa découverte.", a: "Louis Pasteur (vaccin contre la rage) ou Marie Curie (radioactivité).", vn_q: "Nêu tên một nhân vật khoa học Pháp và khám phá của họ.", vn_a: "Louis Pasteur (vắc-xin phòng bệnh dại) hoặc Marie Curie (phóng xạ)." },
+                { q: "Quels sont les trois grands principes de la justice ?", a: "L'égalité devant la justice, la présomption d'innocence, et le droit à un procès équitable.", vn_q: "Ba nguyên tắc lớn của công lý là gì?", vn_a: "Bình đẳng trước pháp luật, giả định vô tội, và quyền được xét xử công bằng." },
+                { q: "Qui était Jules Ferry ?", a: "Un homme politique qui a rendu l'école gratuite, laïque et obligatoire à la fin du 19ème siècle.", vn_q: "Jules Ferry là ai?", vn_a: "Một chính trị gia đã làm cho trường học trở nên miễn phí, thế tục và bắt buộc vào cuối thế kỷ 19." },
+                { q: "Qui était Simone Veil ?", a: "Une femme politique qui a légalisé l'avortement (loi Veil de 1975) et a été Présidente du Parlement européen.", vn_q: "Simone Veil là ai?", vn_a: "Một nữ chính trị gia đã hợp pháp hóa việc phá thai (luật Veil năm 1975) và là Chủ tịch Nghị viện châu Âu." },
+                { q: "Qu'est-ce que le baccalauréat ?", a: "C'est l'examen qui marque la fin des études secondaires et qui permet d'accéder à l'enseignement supérieur.", vn_q: "Bằng tú tài (baccalauréat) là gì?", vn_a: "Đó là kỳ thi đánh dấu sự kết thúc của bậc trung học và cho phép tiếp cận giáo dục đại học." },
+                { q: "Qu'est-ce que la laïcité à l'école ?", a: "L'école publique est neutre. Il n'y a pas d'enseignement religieux et le port de signes religieux ostensibles est interdit.", vn_q: "Chủ nghĩa thế tục ở trường học là gì?", vn_a: "Trường công lập là trung lập. Không có giảng dạy tôn giáo và việc đeo các biểu tượng tôn giáo phô trương bị cấm." },
+                { q: "Qu'est-ce que l'Académie française ?", a: "C'est une institution qui a pour mission de veiller sur la langue française et de créer le dictionnaire.", vn_q: "Viện Hàn lâm Pháp là gì?", vn_a: "Đó là một tổ chức có nhiệm vụ trông nom tiếng Pháp và tạo ra từ điển." },
+                { q: "Qu'est-ce qu'un syndicat ?", a: "Une association de personnes qui a pour but de défendre les droits et les intérêts professionnels de ses membres.", vn_q: "Công đoàn là gì?", vn_a: "Một hiệp hội của những người có mục đích bảo vệ các quyền và lợi ích nghề nghiệp của các thành viên." },
+                { q: "Citez deux jours fériés et leur signification.", a: "Le 1er mai (fête du Travail), le 8 mai (fin de la Seconde Guerre mondiale en Europe), Noël (naissance de Jésus-Christ), Pâques (résurrection de Jésus-Christ).", vn_q: "Kể tên hai ngày lễ và ý nghĩa của chúng.", vn_a: "Ngày 1 tháng 5 (Ngày Quốc tế Lao động), ngày 8 tháng 5 (kết thúc Thế chiến thứ hai ở châu Âu), Giáng sinh (ngày sinh của Chúa Giê-su), Phục sinh (sự phục sinh của Chúa Giê-su)." },
+                { q: "Quelle est la différence entre un département et une région ?", a: "La région est une collectivité territoriale plus grande qui regroupe plusieurs départements.", vn_q: "Sự khác biệt giữa một tỉnh (département) và một vùng (région) là gì?", vn_a: "Vùng là một đơn vị hành chính lớn hơn, bao gồm nhiều tỉnh." },
+                { q: "Qu'appelle-t-on l'Hexagone ?", a: "C'est un surnom donné à la France métropolitaine en raison de sa forme géographique qui ressemble à un hexagone.", vn_q: "L'Hexagone (Hình lục giác) được gọi là gì?", vn_a: "Đó là một biệt danh được đặt cho nước Pháp lục địa do hình dạng địa lý của nó giống như một hình lục giác." }
             ];
 
             // --- ICONS ---
@@ -398,63 +392,10 @@
             setupInterviewLogic('entretien-essentiel', questions_essentielles, true);
             setupInterviewUI('entretien-approfondi', 'Entraînement Approfondi', false);
             setupInterviewLogic('entretien-approfondi', questions_approfondies, false);
+            setupInterviewUI('entrainement-expert', 'Entraînement Expert', false);
+            setupInterviewLogic('entrainement-expert', questions_expert, false);
 
             document.getElementById('btn-prononciation').click();
-            
-            // --- CHANGELOG MODAL LOGIC ---
-            const changelogModal = document.getElementById('changelog-modal');
-            const openChangelogBtn = document.getElementById('open-changelog-btn');
-            const closeChangelogBtn = document.getElementById('close-changelog-btn');
-            const changelogContent = changelogModal.querySelector('.space-y-4');
-
-            const versions = [
-                { version: "v7.0", date: "05/08/2025", changes: ["Ajout de nombreuses questions dans la section 'Entretien Approfondi' pour une préparation complète."] },
-                { version: "v6.0", date: "05/08/2025", changes: ["Amélioration de la logique du Quiz pour afficher la réponse avant l'évaluation.", "Ajout de l'historique des versions."] },
-                { version: "v5.0", date: "05/08/2025", changes: ["Transformation du simulateur 'Essentiel' en Quiz avec score.", "Ajout de boutons de traduction en vietnamien."] },
-                { version: "v4.0", date: "05/08/2025", changes: ["Ajout de la section 'Entretien Approfondi' avec plus de questions."] },
-                { version: "v3.0", date: "05/08/2025", changes: ["Ajout du mode 'Liste Complète' pour réviser toutes les questions."] },
-                { version: "v2.0", date: "05/08/2025", changes: ["Ajout de la synthèse vocale pour écouter la prononciation des mots."] },
-                { version: "v1.0", date: "05/08/2025", changes: ["Création de l'application avec les sections Prononciation et Entretien."] }
-            ];
-
-            changelogContent.innerHTML = versions.map(v => `
-                <div>
-                    <h4 class="text-lg font-bold text-gray-700">${v.version} <span class="text-sm font-normal text-gray-500">- ${v.date}</span></h4>
-                    <ul class="list-disc list-inside text-gray-600 mt-1">
-                        ${v.changes.map(c => `<li>${c}</li>`).join('')}
-                    </ul>
-                </div>
-            `).join('');
-
-            function toggleModal(show) {
-                const overlay = document.getElementById('changelog-modal');
-                if (!overlay) return;
-                const container = overlay.querySelector('.modal-container');
-                if (!container) return;
-
-                if (show) {
-                    overlay.classList.remove('hidden');
-                    setTimeout(() => {
-                        overlay.classList.remove('opacity-0');
-                        container.classList.remove('scale-95');
-                    }, 10);
-                } else {
-                    overlay.classList.add('opacity-0');
-                    container.classList.add('scale-95');
-                    setTimeout(() => {
-                        overlay.classList.add('hidden');
-                    }, 300);
-                }
-            }
-
-            openChangelogBtn.addEventListener('click', () => toggleModal(true));
-            closeChangelogBtn.addEventListener('click', () => toggleModal(false));
-            changelogModal.addEventListener('click', (e) => {
-                if (e.target === changelogModal) {
-                    toggleModal(false);
-                }
-            });
-
         });
     </script>
 </body>
